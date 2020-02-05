@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 
 namespace Infrastructure.DataAccess
 {
-    public interface ISession
+    public interface ISession : IDisposable
     {
         IEnumerable<T> Query<T>(string sql, object param = null, bool buffered = true, CommandType? commandType = null, int? commandTimeout = null);
 

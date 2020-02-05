@@ -9,9 +9,9 @@ namespace BizRules.Employee
     {
         void Create(EmployeeRequest request);
 
-        void UpdateAsync(int id, EmployeeRequest request);
+        void Update(int id, EmployeeRequest request);
 
-        void UpdateAsync(IEnumerable<EmployeeView> employees);
+        void Update(IEnumerable<EmployeeView> employees);
 
         void Delete(int id);
 

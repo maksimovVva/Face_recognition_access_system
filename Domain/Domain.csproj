@@ -44,6 +44,11 @@
     <Compile Include="Exception\FileExtensionException.cs" />
     <Compile Include="Exception\FileSizeException.cs" />
     <Compile Include="Models\CameraView.cs" />
+    <Compile Include="Models\DbModels\CameraDbObject.cs" />
+    <Compile Include="Models\DbModels\DepartmentDbObject.cs" />
+    <Compile Include="Models\DbModels\EmployeeDbObject.cs" />
+    <Compile Include="Models\DbModels\EmployeeStatusDbObject.cs" />
+    <Compile Include="Models\DbModels\SecurityLevelWithEmployee.cs" />
     <Compile Include="Models\DictionaryItem.cs" />
     <Compile Include="Models\Employee\Department.cs" />
     <Compile Include="Models\Employee\Employee.cs" />
