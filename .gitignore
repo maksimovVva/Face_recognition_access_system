@@ -1,0 +1,12 @@
+# Server
+**/bin/
+**/obj/
+**/logs/
+**/packages/
+*.suo
+bin/
+obj/
+logs/
+packages/
+.vs/
+*.user
