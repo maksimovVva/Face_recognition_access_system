@@ -2,6 +2,7 @@ import cv2
 import os
 import numpy as np
 import tensorflow as tf
+import face_recognition
 
 from object_detection.utils import label_map_util
 
@@ -42,6 +43,8 @@ def recognize_person():
 
                 # get picture from stream
                 ret, frame = camera.read()
+                small_frame = cv2.resize(frame, (0, 0), fx=1 / 2, fy=1 / 2)
+                rgb_small_frame = small_frame[:, :, ::-1]
 
                 if process_this_frame:
                     # get detected objects
@@ -55,6 +58,11 @@ def recognize_person():
                         [boxes, scores, classes, num_detections],
                         feed_dict={image_tensor: image_np_expanded})
 
+                face_locations = face_recognition.face_locations(rgb_small_frame)
+
+                face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
+                face_names = ["Unknown" for _ in face_locations]
+
                 # visualize box around person
                 vis_util.visualize_boxes_and_labels_on_image_array(frame, np.squeeze(boxes),
                                                                    np.squeeze(classes).astype(np.int32),
@@ -62,6 +70,23 @@ def recognize_person():
                                                                    use_normalized_coordinates=True,
                                                                    line_thickness=8, skip_labels=True,
                                                                    skip_scores=True)
+
+                for (top, right, bottom, left), name in zip(face_locations, face_names):
+                    top *= 2
+                    right *= 2
+                    bottom *= 2
+                    left *= 2
+
+                    color = (0, 0, 255)
+
+                    cv2.rectangle(frame, (left, top), (right, bottom), color, 2)
+                    font = cv2.FONT_HERSHEY_DUPLEX
+                    (text_width, text_height) = cv2.getTextSize(name, font, fontScale=1.0, thickness=1)[0]
+                    text_left = int(left + (right - left) / 2 - text_width / 2)
+                    cv2.rectangle(frame, (text_left - 5, bottom), (text_left + text_width + 5, bottom + text_height + 8), color,
+                                  cv2.FILLED)
+
+                    cv2.putText(frame, name, (text_left, bottom + text_height + 4), font, 1.0, (245, 245, 245), 1)
 
                 cv2.imshow('Video', frame)
 
