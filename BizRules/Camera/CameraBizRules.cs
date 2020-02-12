@@ -8,7 +8,7 @@ using Infrastructure.DataAccess;
 
 namespace BizRules.Camera
 {
-    class CameraBizRules : ICameraBizRules
+    public class CameraBizRules : ICameraBizRules
     {
         private readonly ICameraRepository cameraRepository;
         private readonly ISessionFactory sessionFactory;
