@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastru
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataAccess", "DataAccess\DataAccess.csproj", "{82DA4824-1EF5-4F3F-A7B5-4D1E89913F0F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RmqSubscriber", "RmqSubscriber\RmqSubscriber.csproj", "{73638A3B-19A1-4A0D-8AB4-8DC5340AEC2C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{82DA4824-1EF5-4F3F-A7B5-4D1E89913F0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{82DA4824-1EF5-4F3F-A7B5-4D1E89913F0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{82DA4824-1EF5-4F3F-A7B5-4D1E89913F0F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73638A3B-19A1-4A0D-8AB4-8DC5340AEC2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73638A3B-19A1-4A0D-8AB4-8DC5340AEC2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73638A3B-19A1-4A0D-8AB4-8DC5340AEC2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73638A3B-19A1-4A0D-8AB4-8DC5340AEC2C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
