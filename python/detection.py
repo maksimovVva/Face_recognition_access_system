@@ -14,6 +14,22 @@ PATH_TO_LABELS = os.path.join('object_detection', 'data', 'mscoco_label_map.pbtx
 NUM_CLASSES = 1
 
 CAMERA_ID = 0
+DECREASING_LEVEL = 2
+
+RED_COLOR = (0, 0, 255)
+WHITE_COLOR = (245, 245, 245)
+TEXT_FONT = cv2.FONT_HERSHEY_DUPLEX
+
+
+def get_text_coordinates(text, face_coordinates):
+    text_coordinates = {}
+    (text_width, text_height) = cv2.getTextSize(text, TEXT_FONT, fontScale=1.0, thickness=1)[0]
+    text_coordinates["left"] = int(face_coordinates["left"] + (face_coordinates["right"] - face_coordinates["left"]) / 2
+                                   - text_width / 2)
+    text_coordinates["right"] = text_coordinates["left"] + text_width
+    text_coordinates["top"] = face_coordinates["bottom"]
+    text_coordinates["bottom"] = text_coordinates["top"] + text_height
+    return text_coordinates
 
 
 # Function for recognize person's body on video
@@ -43,7 +59,7 @@ def recognize_person():
 
                 # get picture from stream
                 ret, frame = camera.read()
-                small_frame = cv2.resize(frame, (0, 0), fx=1 / 2, fy=1 / 2)
+                small_frame = cv2.resize(frame, (0, 0), fx=1/DECREASING_LEVEL, fy=1/DECREASING_LEVEL)
                 rgb_small_frame = small_frame[:, :, ::-1]
 
                 if process_this_frame:
@@ -58,10 +74,19 @@ def recognize_person():
                         [boxes, scores, classes, num_detections],
                         feed_dict={image_tensor: image_np_expanded})
 
+                # Get coordinates of box around faces
                 face_locations = face_recognition.face_locations(rgb_small_frame)
 
+                # Get identified faces embeddings
                 face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
-                face_names = ["Unknown" for _ in face_locations]
+                face_names = []
+
+                # Find similar face from database
+                for face_encoding in face_encodings:
+                    name = "Unknown"
+                    # TODO: add recognize face of person
+
+                    face_names.append(name)
 
                 # visualize box around person
                 vis_util.visualize_boxes_and_labels_on_image_array(frame, np.squeeze(boxes),
@@ -71,22 +96,25 @@ def recognize_person():
                                                                    line_thickness=8, skip_labels=True,
                                                                    skip_scores=True)
 
-                for (top, right, bottom, left), name in zip(face_locations, face_names):
-                    top *= 2
-                    right *= 2
-                    bottom *= 2
-                    left *= 2
+                # visualize box around face with name
+                for (face_top, face_right, face_bottom, face_left), name in zip(face_locations, face_names):
+                    face_coordinates = {"top": face_top * DECREASING_LEVEL,
+                                        "right": face_right * DECREASING_LEVEL,
+                                        "bottom": face_bottom * DECREASING_LEVEL,
+                                        "left": face_left * DECREASING_LEVEL
+                    }
 
-                    color = (0, 0, 255)
+                    # get face's coordinates
+                    cv2.rectangle(frame, (face_coordinates["left"], face_coordinates["top"]),
+                                         (face_coordinates["right"], face_coordinates["bottom"]), RED_COLOR, 2)
 
-                    cv2.rectangle(frame, (left, top), (right, bottom), color, 2)
-                    font = cv2.FONT_HERSHEY_DUPLEX
-                    (text_width, text_height) = cv2.getTextSize(name, font, fontScale=1.0, thickness=1)[0]
-                    text_left = int(left + (right - left) / 2 - text_width / 2)
-                    cv2.rectangle(frame, (text_left - 5, bottom), (text_left + text_width + 5, bottom + text_height + 8), color,
-                                  cv2.FILLED)
-
-                    cv2.putText(frame, name, (text_left, bottom + text_height + 4), font, 1.0, (245, 245, 245), 1)
+                    # visualize person's name if he was recognized
+                    text_coordinates = get_text_coordinates(name, face_coordinates)
+                    cv2.rectangle(frame, (text_coordinates["left"] - 5, face_coordinates["bottom"]),
+                                  (text_coordinates["right"] + 5, text_coordinates["bottom"] + 8),
+                                  RED_COLOR, cv2.FILLED)
+                    cv2.putText(frame, name, (text_coordinates["left"], text_coordinates["bottom"] + 4),
+                                TEXT_FONT, 1.0, WHITE_COLOR, 1)
 
                 cv2.imshow('Video', frame)
 
