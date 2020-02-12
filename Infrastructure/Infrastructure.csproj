@@ -31,8 +31,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Dapper, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dapper.2.0.30\lib\net461\Dapper.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -43,8 +48,17 @@
   <ItemGroup>
     <Compile Include="DataAccess\ISession.cs" />
     <Compile Include="DataAccess\ISessionFactory.cs" />
+    <Compile Include="DataAccess\Session.cs" />
+    <Compile Include="DataAccess\SessionFactory.cs" />
     <Compile Include="FileStore\IFileStore.cs" />
+    <Compile Include="Helpers\Config.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\IWorker.cs" />
+    <Compile Include="Services\Runner.cs" />
+    <Compile Include="Services\ServiceBaseExt.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

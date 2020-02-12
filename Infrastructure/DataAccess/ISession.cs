@@ -15,10 +15,6 @@ namespace Infrastructure.DataAccess
 
         Task<int> ExecuteAsync(string sql, object param = null, int? commandTimeout = null, CommandType? commandType = null);
 
-        Task<T> ExecuteScalarAsync<T>(string sql, object param, int? commandTimeout = null, CommandType? commandType = null);
-
-        T ExecuteScalar<T>(string sql, object param, int? commandTimeout = null, CommandType? commandType = null);
-
         void Commit();
 
         void Rollback();

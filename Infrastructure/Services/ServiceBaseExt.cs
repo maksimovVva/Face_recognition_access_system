@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.ServiceProcess;
 
 namespace Infrastructure.Services
@@ -32,7 +31,10 @@ namespace Infrastructure.Services
             try
             {
                 runners = workers.Select(worker => new Runner(worker)).ToList();
-                runners.ForEach(runner => runner.Start());
+                foreach (var runner in runners)
+                {
+                    runner.Start();
+                }
             }
             catch (Exception ex)
             {
@@ -49,7 +51,7 @@ namespace Infrastructure.Services
 
         protected override void OnStop()
         {
-            runners.ForEach(runner =>
+            foreach (var runner in runners)
             {
                 try
                 {
@@ -59,7 +61,7 @@ namespace Infrastructure.Services
                 {
                     throw e;
                 }
-            });
+            }
         }
 
         public void Start()
