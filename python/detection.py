@@ -1,5 +1,6 @@
 import cv2
 import os
+import glob
 import numpy as np
 import tensorflow as tf
 import face_recognition
@@ -20,6 +21,37 @@ RED_COLOR = (0, 0, 255)
 WHITE_COLOR = (245, 245, 245)
 TEXT_FONT = cv2.FONT_HERSHEY_DUPLEX
 
+DATASET_FOLDER = 'dataset'
+
+
+def read_known_faces():
+    known_face_encodings = []
+    known_face_names = []
+
+    for file_name in glob.glob(DATASET_FOLDER + "/*.jpg"):
+        image = face_recognition.load_image_file(file_name)
+        face_encoding = face_recognition.face_encodings(image)
+
+        known_face_encodings.append(face_encoding[0])
+
+        name = file_name.split('.jpg')[0].split('/')[-1]
+        if len(name.split('_')) != 2:
+            raise Exception("\n\nERROR: file \'" + file_name + "\' has incorrect name\n\n")
+
+        known_face_names.append(name)
+
+    return known_face_encodings, known_face_names
+
+
+def add_new_known_face(new_file_name, known_face_encodings, known_face_names):
+    image = face_recognition.load_image_file(new_file_name)
+    face_encoding = face_recognition.face_encodings(image)
+    known_face_encodings.append(face_encoding[0])
+
+    known_face_names.append(new_file_name)
+
+    return known_face_encodings, known_face_names
+
 
 def get_text_coordinates(text, face_coordinates):
     text_coordinates = {}
@@ -33,7 +65,8 @@ def get_text_coordinates(text, face_coordinates):
 
 
 # Function for recognize person's body on video
-def recognize_person():
+def recognize_person(known_face_encodings, known_face_names):
+
     # initialize model
     detection_graph = tf.Graph()
     with detection_graph.as_default():
@@ -84,7 +117,12 @@ def recognize_person():
                 # Find similar face from database
                 for face_encoding in face_encodings:
                     name = "Unknown"
-                    # TODO: add recognize face of person
+                    matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+
+                    face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+                    best_match_index = np.argmin(face_distances)
+                    if matches[best_match_index]:
+                        name = known_face_names[best_match_index]
 
                     face_names.append(name)
 
@@ -127,6 +165,11 @@ def recognize_person():
     camera.release()
     cv2.destroyAllWindows()
 
+    return known_face_encodings, known_face_names
+
 
 if __name__ == "__main__":
-    recognize_person()
+
+    known_face_encodings, known_face_names = read_known_faces()
+
+    known_face_encodings, known_face_names = recognize_person(known_face_encodings, known_face_names)
