@@ -18,21 +18,50 @@ CAMERA_ID = 0
 DECREASING_LEVEL = 2
 
 RED_COLOR = (0, 0, 255)
+BLUE_COLOR = (255, 0, 0)
 WHITE_COLOR = (245, 245, 245)
 TEXT_FONT = cv2.FONT_HERSHEY_DUPLEX
 
 DATASET_FOLDER = 'dataset'
 
 
+def read_face_encoding(file_name):
+    """
+    Load photo and get encoding of face
+
+    @parameter file_name: path to the photo
+    @type file_name: C{string}
+
+    """
+    if not os.path.isfile(file_name):
+        raise Exception("\n\nERROR: file \'" + file_name + "\' doesn't exist\n\n")
+
+    image = face_recognition.load_image_file(file_name)
+    face_encoding = face_recognition.face_encodings(image)
+
+    if len(face_encoding) == 0:
+        raise Exception("\n\nERROR: file \'" + file_name + "\' doesn't contain correct face image\n\n")
+    elif len(face_encoding) > 1:
+        raise Exception("\n\nERROR: file \'" + file_name + "\' contain more than 1 faces\n\n")
+
+    return face_encoding[0]
+
+
 def read_known_faces():
+    """
+    Load database of photo to model
+
+    Name of every photo should be in following format:
+        <unioque-id>_<last-name>
+
+    """
     known_face_encodings = []
     known_face_names = []
 
     for file_name in glob.glob(DATASET_FOLDER + "/*.jpg"):
-        image = face_recognition.load_image_file(file_name)
-        face_encoding = face_recognition.face_encodings(image)
+        face_encoding = read_face_encoding(file_name)
 
-        known_face_encodings.append(face_encoding[0])
+        known_face_encodings.append(face_encoding)
 
         name = file_name.split('.jpg')[0].split('/')[-1]
         if len(name.split('_')) != 2:
@@ -44,16 +73,96 @@ def read_known_faces():
 
 
 def add_new_known_face(new_file_name, known_face_encodings, known_face_names):
-    image = face_recognition.load_image_file(new_file_name)
-    face_encoding = face_recognition.face_encodings(image)
-    known_face_encodings.append(face_encoding[0])
+    """
+    Function for adding new person in database
+
+    @parameter new_file_name: path to the new photo
+    @type new_file_name: C{string}
+
+    @parameter known_face_encodings: List of encoding vectors of faces from current database
+    @type known_face_encodings: C{list}
+
+    @parameter known_face_names: path to the new photo
+    @type known_face_names: C{list}
+
+    """
+    face_encoding = read_face_encoding(new_file_name)
+    known_face_encodings.append(face_encoding)
 
     known_face_names.append(new_file_name)
 
     return known_face_encodings, known_face_names
 
 
+def update_known_face(new_file_name, known_face_encodings, known_face_names):
+    """
+    Function for changing face's encoding for certain person in database
+
+    @parameter new_file_name: path to the new photo
+    @type new_file_name: C{string}
+
+    @parameter known_face_encodings: List of encoding vectors of faces from current database
+    @type known_face_encodings: C{list}
+
+    @parameter known_face_names: path to the new photo
+    @type known_face_names: C{list}
+
+    """
+    name = new_file_name.split('.jpg')[0].split('/')[-1]
+    finding = False
+
+    for i in range(0, len(known_face_names)):
+        if name == known_face_names[i]:
+            finding = True
+            face_encoding = read_face_encoding(new_file_name)
+            known_face_encodings[i] = face_encoding
+            break
+    if finding:
+        return known_face_encodings, known_face_names
+    else:
+        raise Exception("\n\nERROR: there are no name \'" + name + "\' in the base of known faces\n\n")
+
+
+def delete_known_face(file_name, known_face_encodings, known_face_names):
+    """
+    Function for deleting face's encoding for certain person in database
+
+    @parameter file_name: path to the new photo
+    @type file_name: C{string}
+
+    @parameter known_face_encodings: List of encoding vectors of faces from current database
+    @type known_face_encodings: C{list}
+
+    @parameter known_face_names: path to the new photo
+    @type known_face_names: C{list}
+
+    """
+    name = file_name.split('.jpg')[0].split('/')[-1]
+    finding = False
+
+    for i in range(0, len(known_face_names)):
+        if name == known_face_names[i]:
+            finding = True
+            del known_face_names[i]
+            del known_face_encodings[i]
+            break
+    if finding:
+        return known_face_encodings, known_face_names
+    else:
+        raise Exception("\n\nERROR: there are no name \'" + name + "\' in the base of known faces\n\n")
+
+
 def get_text_coordinates(text, face_coordinates):
+    """
+    Function for determination coordinates of person's name on frame
+
+    @parameter text: signature of highlighted frame
+    @type text: C{string}
+
+    @parameter face_coordinates: Coordinates of frame for recognizing face
+    @type face_coordinates: C{dict}
+
+    """
     text_coordinates = {}
     (text_width, text_height) = cv2.getTextSize(text, TEXT_FONT, fontScale=1.0, thickness=1)[0]
     text_coordinates["left"] = int(face_coordinates["left"] + (face_coordinates["right"] - face_coordinates["left"]) / 2
@@ -64,8 +173,17 @@ def get_text_coordinates(text, face_coordinates):
     return text_coordinates
 
 
-# Function for recognize person's body on video
 def recognize_person(known_face_encodings, known_face_names):
+    """
+    Function for recognize person's body on video
+
+    @parameter known_face_encodings: List of encoding vectors of faces from current database
+    @type known_face_encodings: C{list}
+
+    @parameter known_face_names: path to the new photo
+    @type known_face_names: C{list}
+
+    """
 
     # initialize model
     detection_graph = tf.Graph()
@@ -142,15 +260,20 @@ def recognize_person(known_face_encodings, known_face_names):
                                         "left": face_left * DECREASING_LEVEL
                     }
 
+                    if name == "Unknown":
+                        color = RED_COLOR
+                    else:
+                        color = BLUE_COLOR
+
                     # get face's coordinates
                     cv2.rectangle(frame, (face_coordinates["left"], face_coordinates["top"]),
-                                         (face_coordinates["right"], face_coordinates["bottom"]), RED_COLOR, 2)
+                                         (face_coordinates["right"], face_coordinates["bottom"]), color, 2)
 
                     # visualize person's name if he was recognized
                     text_coordinates = get_text_coordinates(name, face_coordinates)
                     cv2.rectangle(frame, (text_coordinates["left"] - 5, face_coordinates["bottom"]),
                                   (text_coordinates["right"] + 5, text_coordinates["bottom"] + 8),
-                                  RED_COLOR, cv2.FILLED)
+                                  color, cv2.FILLED)
                     cv2.putText(frame, name, (text_coordinates["left"], text_coordinates["bottom"] + 4),
                                 TEXT_FONT, 1.0, WHITE_COLOR, 1)
 
