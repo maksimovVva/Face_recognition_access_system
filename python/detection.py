@@ -4,23 +4,44 @@ import glob
 import numpy as np
 import tensorflow as tf
 import face_recognition
+import datetime
+import time
+import copy
+import json
+import pika
 
 from object_detection.utils import label_map_util
 
 from object_detection.utils import visualization_utils as vis_util
 
+# Parameters for body detection
 MODEL_NAME = 'body_detection_model'
 PATH_TO_CKPT = MODEL_NAME + '/frozen_inference_graph.pb'
 PATH_TO_LABELS = os.path.join('object_detection', 'data', 'mscoco_label_map.pbtxt')
 NUM_CLASSES = 1
 
+# Parameters for current camera
 CAMERA_ID = 0
 DECREASING_LEVEL = 2
 
+# Parameters for connection with server
+USER = 'faceControl'
+PASSWORD = 'FaCeCoNtRoL'
+IP = '172.20.10.3'
+PORT = 5672
+
+# Visualization parameters
 RED_COLOR = (0, 0, 255)
 BLUE_COLOR = (255, 0, 0)
 WHITE_COLOR = (245, 245, 245)
 TEXT_FONT = cv2.FONT_HERSHEY_DUPLEX
+
+# Timeouts for logging
+TIMEOUT = 3           # sec for catching faces
+TIMEOUT_UPDATE = 600  # sec for update known faces
+WAIT_FOR_ALARM = 3    # sec for doesn't send message of alarm
+
+TIME_TO_UPDATE = 1    # day for full cleanup face's base
 
 DATASET_FOLDER = 'dataset'
 
@@ -185,7 +206,7 @@ def recognize_person(known_face_encodings, known_face_names):
 
     """
 
-    # initialize model
+    # Initialize model for body detection
     detection_graph = tf.Graph()
     with detection_graph.as_default():
         od_graph_def = tf.GraphDef()
@@ -199,22 +220,48 @@ def recognize_person(known_face_encodings, known_face_names):
                                                                 use_display_name=True)
 
     category_index = label_map_util.create_category_index(categories)
+
+    # Initialize connect with server
+    # credentials = pika.PlainCredentials(USER, PASSWORD)
+    # parameters = pika.ConnectionParameters(IP, PORT, credentials=credentials)
+    # connection = pika.BlockingConnection(parameters)
+    # channel = connection.channel()
+
+    # Initialize parameters for logging
+    last_visible = np.array([False for _ in range(0, len(known_face_names))], dtype=np.bool)
+    last_visible_time = [datetime.datetime.min for _ in range(0, len(known_face_names))]
+
+    last_no_face = False
+    last_no_face_time = datetime.datetime.min
+
+    last_unknown = False
+    last_unknown_time = datetime.datetime.min
+
+    last_update_face_base = datetime.datetime(1, 1, 1, 0, 0, 0)
+    update_time = time.time() + TIMEOUT_UPDATE
+
     process_this_frame = True
 
-    # get video stream
+    # Get video stream and processed frame
     camera = cv2.VideoCapture(CAMERA_ID)
 
     with detection_graph.as_default():
         with tf.Session(graph=detection_graph) as sess:
             while True:
+                # Check for timeout for updating database
+                if time.time() > update_time:
+                    update_time = time.time() + TIMEOUT_UPDATE
+                    if (datetime.datetime.now() - last_update_face_base).days >= TIME_TO_UPDATE:
+                        known_face_encodings, known_face_names = read_known_faces()
+                        last_update_face_base = datetime.datetime.now()
 
-                # get picture from stream
+                # Get picture from stream
                 ret, frame = camera.read()
                 small_frame = cv2.resize(frame, (0, 0), fx=1/DECREASING_LEVEL, fy=1/DECREASING_LEVEL)
                 rgb_small_frame = small_frame[:, :, ::-1]
 
                 if process_this_frame:
-                    # get detected objects
+                    # Get detected objects (bodies and faces)
                     image_np_expanded = np.expand_dims(frame, axis=0)
                     image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
                     boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
@@ -225,26 +272,104 @@ def recognize_person(known_face_encodings, known_face_names):
                         [boxes, scores, classes, num_detections],
                         feed_dict={image_tensor: image_np_expanded})
 
-                # Get coordinates of box around faces
-                face_locations = face_recognition.face_locations(rgb_small_frame)
+                    n_body = 0
+                    for i in range(0, scores.shape[1]):
+                        if scores[0][i] > 0.5:
+                            n_body += 1
+                        else:
+                            break
 
-                # Get identified faces embeddings
-                face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
-                face_names = []
+                    # Get coordinates of box around faces
+                    face_locations = face_recognition.face_locations(rgb_small_frame)
 
-                # Find similar face from database
-                for face_encoding in face_encodings:
-                    name = "Unknown"
-                    matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+                    now_no_face = False
 
-                    face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
-                    best_match_index = np.argmin(face_distances)
-                    if matches[best_match_index]:
-                        name = known_face_names[best_match_index]
+                    # Check number of detected faces and bodies
+                    n_faces = len(face_locations)
+                    if n_body > n_faces:
+                        # Send alarm if anybody try to hide face
+                        now_no_face = True
+                        now = datetime.datetime.now()
+                        if not last_no_face:
+                            last_no_face_time = now
+                        else:
+                            if last_no_face_time != datetime.datetime.min:
+                                delta = now - last_no_face_time
+                                if delta.seconds > TIMEOUT:
+                                    with open("logging.txt", "a+") as log_file:
+                                        user_id = None
+                                        send_data = {"userId": user_id,
+                                                     "cameraId": str(CAMERA_ID)}
+                                        json_send_data = json.dumps(send_data)
 
-                    face_names.append(name)
+                                        # channel.basic_publish(exchange='', routing_key='users', body=json_send_data)
 
-                # visualize box around person
+                                        log_file.write("\nALARM NO FACE at " + now.strftime("%H:%M:%S %d-%m-%Y"))
+                                        last_no_face_time = datetime.datetime.min
+
+                    # Get identified faces embeddings
+                    face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
+                    face_names = []
+                    now_visible = np.array([False for _ in range(0, len(known_face_names))], dtype=np.bool)
+                    now_unknown = False
+
+                    # Find similar face from database
+                    for face_encoding in face_encodings:
+                        name = "Unknown"
+                        matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+
+                        face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+                        best_match_index = np.argmin(face_distances)
+                        if matches[best_match_index]:
+                            # Current face was recognized - send record about it
+                            name = known_face_names[best_match_index]
+                            now_visible[best_match_index] = True
+                            now = datetime.datetime.now()
+                            if not last_visible[best_match_index]:
+                                last_visible_time[best_match_index] = now
+                            else:
+                                if last_visible_time[best_match_index] != datetime.datetime.min:
+                                    delta = now - last_visible_time[best_match_index]
+                                    if delta.seconds > TIMEOUT:
+                                        with open("logging.txt", "a+") as log_file:
+                                            user_id = name.split('_')[0]
+                                            send_data = {"userId": user_id, "cameraId": CAMERA_ID}
+                                            json_send_data = json.dumps(send_data)
+
+                                            # channel.basic_publish(exchange='', routing_key='users', body=json_send_data)
+
+                                            log_file.write(
+                                                "\nRecognize " + name + " at " + now.strftime("%H:%M:%S %d-%m-%Y"))
+                                            last_visible_time[best_match_index] = datetime.datetime.min
+                        else:
+                            # Current face was NOT recognized - send alarm about it
+                            now_unknown = True
+                            now = datetime.datetime.now()
+                            if not last_unknown:
+                                last_unknown_time = now
+                            else:
+                                if last_unknown_time != datetime.datetime.min:
+                                    delta = now - last_unknown_time
+                                    if delta.seconds > TIMEOUT:
+                                        with open("logging.txt", "a+") as log_file:
+                                            user_id = None
+                                            send_data = {"userId": user_id, "cameraId": CAMERA_ID}
+                                            json_send_data = json.dumps(send_data)
+
+                                            # channel.basic_publish(exchange='', routing_key='users', body=json_send_data)
+
+                                            log_file.write("\nALARM at " + now.strftime("%H:%M:%S %d-%m-%Y"))
+                                            last_unknown_time = datetime.datetime.min
+
+                        face_names.append(name)
+
+                    last_visible = copy.deepcopy(now_visible)
+                    last_no_face = now_no_face
+                    last_unknown = now_unknown
+
+                process_this_frame = not process_this_frame
+
+                # Visualize box around person
                 vis_util.visualize_boxes_and_labels_on_image_array(frame, np.squeeze(boxes),
                                                                    np.squeeze(classes).astype(np.int32),
                                                                    np.squeeze(scores), category_index,
@@ -252,7 +377,7 @@ def recognize_person(known_face_encodings, known_face_names):
                                                                    line_thickness=8, skip_labels=True,
                                                                    skip_scores=True)
 
-                # visualize box around face with name
+                # Visualize box around face with name
                 for (face_top, face_right, face_bottom, face_left), name in zip(face_locations, face_names):
                     face_coordinates = {"top": face_top * DECREASING_LEVEL,
                                         "right": face_right * DECREASING_LEVEL,
@@ -265,11 +390,11 @@ def recognize_person(known_face_encodings, known_face_names):
                     else:
                         color = BLUE_COLOR
 
-                    # get face's coordinates
+                    # Get face's coordinates
                     cv2.rectangle(frame, (face_coordinates["left"], face_coordinates["top"]),
                                          (face_coordinates["right"], face_coordinates["bottom"]), color, 2)
 
-                    # visualize person's name if he was recognized
+                    # Visualize person's name if he was recognized
                     text_coordinates = get_text_coordinates(name, face_coordinates)
                     cv2.rectangle(frame, (text_coordinates["left"] - 5, face_coordinates["bottom"]),
                                   (text_coordinates["right"] + 5, text_coordinates["bottom"] + 8),
@@ -279,12 +404,13 @@ def recognize_person(known_face_encodings, known_face_names):
 
                 cv2.imshow('Video', frame)
 
-                # press 'q' to quit
+                # Press 'q' to quit
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
 
                 process_this_frame = not process_this_frame
 
+    # connection.close()
     camera.release()
     cv2.destroyAllWindows()
 
