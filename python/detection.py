@@ -222,10 +222,10 @@ def recognize_person(known_face_encodings, known_face_names):
     category_index = label_map_util.create_category_index(categories)
 
     # Initialize connect with server
-    # credentials = pika.PlainCredentials(USER, PASSWORD)
-    # parameters = pika.ConnectionParameters(IP, PORT, credentials=credentials)
-    # connection = pika.BlockingConnection(parameters)
-    # channel = connection.channel()
+    credentials = pika.PlainCredentials(USER, PASSWORD)
+    parameters = pika.ConnectionParameters(IP, PORT, credentials=credentials)
+    connection = pika.BlockingConnection(parameters)
+    channel = connection.channel()
 
     # Initialize parameters for logging
     last_visible = np.array([False for _ in range(0, len(known_face_names))], dtype=np.bool)
@@ -302,7 +302,7 @@ def recognize_person(known_face_encodings, known_face_names):
                                                      "cameraId": str(CAMERA_ID)}
                                         json_send_data = json.dumps(send_data)
 
-                                        # channel.basic_publish(exchange='', routing_key='users', body=json_send_data)
+                                        channel.basic_publish(exchange='', routing_key='users', body=json_send_data)
 
                                         log_file.write("\nALARM NO FACE at " + now.strftime("%H:%M:%S %d-%m-%Y"))
                                         last_no_face_time = datetime.datetime.min
@@ -336,7 +336,7 @@ def recognize_person(known_face_encodings, known_face_names):
                                             send_data = {"userId": user_id, "cameraId": CAMERA_ID}
                                             json_send_data = json.dumps(send_data)
 
-                                            # channel.basic_publish(exchange='', routing_key='users', body=json_send_data)
+                                            channel.basic_publish(exchange='', routing_key='users', body=json_send_data)
 
                                             log_file.write(
                                                 "\nRecognize " + name + " at " + now.strftime("%H:%M:%S %d-%m-%Y"))
@@ -356,7 +356,7 @@ def recognize_person(known_face_encodings, known_face_names):
                                             send_data = {"userId": user_id, "cameraId": CAMERA_ID}
                                             json_send_data = json.dumps(send_data)
 
-                                            # channel.basic_publish(exchange='', routing_key='users', body=json_send_data)
+                                            channel.basic_publish(exchange='', routing_key='users', body=json_send_data)
 
                                             log_file.write("\nALARM at " + now.strftime("%H:%M:%S %d-%m-%Y"))
                                             last_unknown_time = datetime.datetime.min
@@ -410,7 +410,7 @@ def recognize_person(known_face_encodings, known_face_names):
 
                 process_this_frame = not process_this_frame
 
-    # connection.close()
+    connection.close()
     camera.release()
     cv2.destroyAllWindows()
 
