@@ -1,0 +1,10 @@
+{
+  "name": "core",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "dependencies": {
+    "utils": "1.0.0"
+  }
+}
