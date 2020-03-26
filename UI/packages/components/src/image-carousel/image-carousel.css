@@ -1,0 +1,17 @@
+.carousel-image {
+    background-color: #ced4da;
+    height: 250px;
+    position: relative;
+}
+
+.carousel-image img {
+    max-height: 250px;
+    max-width: 100%;
+    margin: 0 auto;
+    position: absolute;
+    top: 50%;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+}
