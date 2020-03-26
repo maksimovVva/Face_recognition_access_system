@@ -34,6 +34,18 @@
     <Reference Include="Dapper, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Dapper.2.0.30\lib\net461\Dapper.dll</HintPath>
     </Reference>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Diagnostics.Tracing.EventSource, Version=1.1.28.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Diagnostics.Tracing.EventSource.Redist.1.1.28\lib\net46\Microsoft.Diagnostics.Tracing.EventSource.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="RabbitMQ.Client, Version=5.0.0.0, Culture=neutral, PublicKeyToken=89e7d7c5feba84ce, processorArchitecture=MSIL">
+      <HintPath>..\packages\RabbitMQ.Client.5.1.2\lib\net451\RabbitMQ.Client.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -50,12 +62,21 @@
     <Compile Include="DataAccess\ISessionFactory.cs" />
     <Compile Include="DataAccess\Session.cs" />
     <Compile Include="DataAccess\SessionFactory.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="FileStore\IFileStore.cs" />
+    <Compile Include="Helpers\ApplicationProperties.cs" />
     <Compile Include="Helpers\Config.cs" />
+    <Compile Include="Logging\LogConfigurator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RmqClient\ErrorHandlingStrategy.cs" />
+    <Compile Include="RmqClient\IErrorHandlingStrategy.cs" />
+    <Compile Include="RmqClient\IRmqSubscriber.cs" />
+    <Compile Include="RmqClient\RmqConnectionOwner.cs" />
+    <Compile Include="RmqClient\RmqSubscriber.cs" />
     <Compile Include="Services\IWorker.cs" />
     <Compile Include="Services\Runner.cs" />
     <Compile Include="Services\ServiceBaseExt.cs" />
+    <Compile Include="StartupAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -2,7 +2,6 @@
 {
     public class RmqMessage
     {
-        public int? UserId { get; set; }
-        public int CameraId { get; set; }
+        public string Data { get; set; }
     }
 }
