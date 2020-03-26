@@ -1,0 +1,24 @@
+{
+  "name": "components",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "dependencies": {
+    "number-abbreviate": "2.0.0",
+    "utils": "1.0.0",
+    "prop-types": "^15.6.1",
+    "react": "^16.3.2",
+    "react-bootstrap-typeahead": "^3.1.4",
+    "react-dates": "^20.1.0",
+    "react-dom": "^16.3.2",
+    "react-list": "0.8.8",
+    "react-list-lazy-load": "1.1.0",
+    "react-loader-spinner": "2.1.0",
+    "react-redux": "^5.0.7",
+    "reactstrap": "^6.0.1"
+  },
+  "peerDependencies": {
+    "bootstrap": "^4.1.0"
+  }
+}

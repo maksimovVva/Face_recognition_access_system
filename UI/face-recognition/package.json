@@ -1,0 +1,39 @@
+{
+    "name": "my-app",
+    "version": "0.1.0",
+    "private": true,
+    "proxy": "http://localhost:59580/",
+    "dependencies": {
+        "boilerplate": "1.0.0",
+        "bootstrap": "^4.1.0",
+        "components": "1.0.0",
+        "core": "1.0.0",
+        "jquery": "^3.4.1",
+        "lodash.debounce": "^4.0.8",
+        "moment": "^2.22.1",
+        "notifications": "1.0.0",
+        "prop-types": "^15.6.1",
+        "react": "^16.3.2",
+        "react-bootstrap-typeahead": "^4.0.0-alpha.9",
+        "react-datetime-picker": "^2.6.0",
+        "react-dom": "^16.3.2",
+        "react-dropdown-tree-select": "^1.17.0",
+        "react-pdf": "^4.0.5",
+        "react-redux": "^5.0.7",
+        "react-router-dom": "^5.0.0",
+        "reactstrap": "^6.0.1",
+        "redux": "^3.7.2",
+        "signalr-client": "^0.0.19",
+        "utils": "1.0.0"
+    },
+    "scripts": {
+        "start": "set PORT=3006 && react-app-rewired start",
+        "build": "react-app-rewired build && node post-build.js",
+        "test": "react-app-rewired test --env=jsdom",
+        "test:debug": "react-scripts --inspect-brk test --runInBand --env=jsdom"
+    },
+    "devDependencies": {
+        "react-app-rewired": "^1.6.2",
+        "react-scripts": "1.1.4"
+    }
+}

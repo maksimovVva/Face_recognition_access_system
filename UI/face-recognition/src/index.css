@@ -1,0 +1,144 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Ubuntu Arial', sans-serif;
+    background-color: #f2f6fb;
+    height: 100%;
+}
+
+.m_15 {
+    margin: 15px;
+}
+
+.m_t0 {
+    margin-top: 0;
+}
+
+.m_b0 {
+    margin-bottom: 0;
+}
+
+.m_l0 {
+    margin-left: 0;
+}
+
+.m_r15 {
+    margin-right: 15px;
+}
+
+.h_60 {
+    height: 60px;
+}
+
+.w_80 {
+    max-width: 80px;
+}
+
+.p_t5 {
+    padding-top: 5px;
+}
+
+.btn-group-toggles {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.btn-group-toggles > .btn {
+    width: 100%;
+}
+
+.modal {
+    overflow-y: hidden !important;
+}
+
+@media (max-width: 1366px) {
+    .column > header > h6 {
+        font-size: 22px;
+    }
+
+    .btn,
+    .badge,
+    .btn-group-toggle .btn {
+        font-size: 13px;
+    }
+
+    .card-header a {
+        font-size: 14px;
+    }
+
+    .card-text {
+        font-size: 14px;
+    }
+}
+
+.butn {
+    border: none;
+    padding: 5px 10px;
+    background: transparent;
+    color: white;
+    border-radius: 0;
+}
+
+.butn-plus{
+    background: orange;
+    color: white !important;
+    border: none;
+
+    display: inline-block;
+    line-height: 42px;
+    vertical-align: middle;
+    text-align: center;
+    text-decoration: none;
+    font-size: 300%;
+    font-weight: 300;
+    position: absolute;
+    right: 15px;
+
+    cursor: pointer;
+}
+
+.butn-primary:hover,
+.butn-primary:focus,
+.butn-primary:visited{
+    background-color: transparent;
+    color: white;
+}
+
+.btn-success,
+.btn-success:active {
+    background-color: #03c8a4 !important;
+    border-color: #03c8a4 !important;
+}
+
+.btn-success:hover {
+    background-color: rgba(3, 200, 164, .3) !important;
+    border-color: rgba(3, 200, 164, .3) !important;
+}
+
+.btn-success:focus:active,
+.btn-success:focus {
+    box-shadow: 0 0 0 0.2rem rgba(3, 200, 164, 0.4) !important;
+    background-color: #03c8a4 !important;
+    border-color: #03c8a4 !important;
+}
+
+.btn-danger,
+.btn-danger:active {
+    background-color: #ff0050 !important;
+    border-color: #ff0050 !important;
+}
+
+.btn-danger:hover {
+    background-color: rgba(255, 0, 80, .3) !important;
+    border-color: rgba(255, 0, 80, .3) !important;
+}
+
+.btn-danger:focus:active,
+.btn-danger:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 0, 80, 0.4) !important;
+    background-color: #ff0050 !important;
+    border-color: #ff0050 !important;
+}
+
+/* #endregion buttons */
+

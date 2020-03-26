@@ -1,0 +1,17 @@
+.list-container {
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+}
+
+.loader {
+    position: relative;
+    padding-top: 10px;
+}
+
+.loader > div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
