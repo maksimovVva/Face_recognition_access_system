@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseDependencyInstaller.cs" />
     <Compile Include="Camera\CameraBizRules.cs" />
     <Compile Include="Camera\ICameraBizRules.cs" />
     <Compile Include="Department\DepartmentBizRules.cs" />
